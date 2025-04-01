@@ -60,27 +60,57 @@ module ffd(
   
 endmodule
 
+module sr_ff (
+    input S,   // Set
+    input R, 
+  	input rst,
+  	input clk,
+    output reg Q,
+  	output reg Q_bar
+);
+  
+  always @(posedge clk or negedge rst) begin
+    if(~rst) begin
+      Q <= 0;
+   	 	Q_bar <= 1;
+    end
+    else begin
+       if (~S & R) begin
+           Q <= 0;
+         	Q_bar <= 1;
+       end
+       else if (S & ~R) begin
+           Q <= 1;
+         	Q_bar <= 0;
+       end
+    end
+end
+    
+endmodule
+
 module sr_latch (
     input S,   // Set
     input R, 
   	input rst,
-    output Q,
+    output reg Q,
+  	output reg Q_bar
 );
-    reg data;
   
   always @(*) begin
-    if(~rst)
-      data = 0;
+    if(~rst) begin
+      Q = 0;
+   	 	Q_bar = 1;
+    end
     else begin
        if (~S & R) begin
-           data = 0;
+           Q = 0;
+         	Q_bar = 1;
        end
        else if (S & ~R) begin
-           data = 1;
+           Q = 1;
+         	Q_bar = 0;
        end
     end
 end
-  
-  assign Q = data;
     
 endmodule

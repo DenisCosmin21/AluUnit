@@ -18,14 +18,11 @@ module control_unit(
   
   modulo_n_sequence_counter #() NumaratorSecventa(.clk(clk), .rst(rst), .start(start), .finish(finish), .secv(secv));
   
-  sr_latch Cycle1(.S(start), .R(set_cycle_2), .rst(rst), .Q(Q[0]));
-  sr_latch Cycle2(.S(set_cycle_2), .R(reset_cycle_2), .rst(rst), .Q(Q[1]));
-  sr_latch Cycle3(.S(reset_cycle_2), .R(finish), .rst(rst), .Q(Q[2]));
+  sr_ff Cycle1(.S(start), .R(Q[0] & secv[3]), .clk(clk),  .rst(rst), .Q(Q[0]));
+  sr_ff Cycle2(.S(Q[0] & secv[3]), .R(reset_cycle_2), .clk(clk), .rst(rst), .Q(Q[1]));
+  sr_ff Cycle3(.S(reset_cycle_2), .R(finish), .rst(rst), .clk(clk), .Q(Q[2]));
   
   wire reset_cycle_2;
-  wire set_cycle_2;
-  
-  assign set_cycle_2 = Q[0] & secv[3];
   
   wire c2;
   wire c3;
@@ -39,7 +36,7 @@ module control_unit(
   
   mux MuxCycle2(.in({Q[1] & secv[3], Q[1] & secv[3], Q[1] & secv[3] & cnt_7, Q[1] & secv[3] & cnt_7}), .sel({0, op_codes}), .o(reset_cycle_2));
   
-  assign finish = c7 & ~clk;
+  assign finish = c7;
   
   assign c[0] = Q[0] & secv[0];
   assign c[1] = Q[0] & secv[1];
@@ -67,7 +64,7 @@ module control_unit(
   
   mux MuxC8(.in({0, 0, secv[0] & Q[0], 0}), .sel({0, op_codes}), .o(c8));
   
-  mux MuxC9(.in({0, 0, secv[1] & ~cnt_7 & Q[1], 0}), .sel({0, op_codes}), .o(c9));
+  mux MuxC9(.in({0, 0, (secv[1] & ~cnt_7 & Q[1]) | (secv[0] & Q[2]), 0}), .sel({0, op_codes}), .o(c9));
   
   mux MuxC10(.in({secv[0] & Q[1], secv[0] & Q[1], 0, 0}), .sel({0, op_codes}), .o(c10));
   

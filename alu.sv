@@ -32,11 +32,11 @@ module alu #(
   
   ffd Q_minus_one_flip_flop(.clk(clk), .d(multiplexedQMinusOne), .en(c[8] | c[9]), .rst(rst), .o(q_minus_one));
   
-  shift_register Q(.parallelIn(multiplexedQInput), .serialIn(multiplexedQSerialIn), .clk(clk), .rst(rst), .en(c[0] | c[10] | c[4] | c[9] | c[6]), .lshift(c[4]), .rshift(c[9] | c[6]), .load(c[0] | c[10]), .parallelOut(q), .serialOut(qSerialOut));
+  shift_register Q(.parallelIn(multiplexedQInput), .serialIn(multiplexedQSerialIn), .clk(clk), .rst(rst), .en(valid | c[10] | c[4] | c[9]), .lshift(c[4]), .rshift(c[9]), .load(valid | c[10]), .parallelOut(q), .serialOut(qSerialOut));
   
   shift_register M(.parallelIn(in), .serialIn(1'b0), .clk(clk), .rst(rst), .en(c[1]), .lshift(1'b0), .rshift(1'b0), .load(c[1]), .parallelOut(m));
   
-  shift_register A(.parallelIn(multiplexedAInput), .serialIn(multiplexedASerialIn), .clk(clk), .rst(rst), .en(c[2] | c[9] | c[4] | c[6]), .lshift(c[4]), .rshift(c[9] | c[6]), .load(c[2] | c[0]), .parallelOut(a), .serialOut(aSerialOut));
+  shift_register A(.parallelIn(multiplexedAInput), .serialIn(multiplexedASerialIn), .clk(clk), .rst(rst), .en(c[2] | c[9] | c[4]), .lshift(c[4]), .rshift(c[9]), .load(c[2] | c[0]), .parallelOut(a), .serialOut(aSerialOut));
   
   c1 ComplementM(.in(m), .en(c[3]), .out(complementedM));
   

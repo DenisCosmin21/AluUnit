@@ -17,14 +17,14 @@ module testbench();
   initial begin
     $dumpfile("dump.vcd");
     $dumpvars(0);
+    op_codes = 2'b11;  
     #10;
-    op_codes = 2'b10;
     valid = 1;
     in = 10;
     #10;
     valid = 0;
-    #10;
     in = 5;
+    #10;
     #10;
     #10;
     #10;
