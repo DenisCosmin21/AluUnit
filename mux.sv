@@ -1,9 +1,9 @@
 module mux #(
-  parameter w = 8,
+  parameter w = 1,
   parameter in_cnt = 4
 )(
   input [w - 1 : 0] in [0 : in_cnt - 1],
-  input [in_cnt : 0] sel,
+  input [in_cnt - 1 : 0] sel,
   output [w - 1 : 0] o,
   );
   

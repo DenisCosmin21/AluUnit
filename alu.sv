@@ -1,53 +1,68 @@
-
-
 module alu #(
   parameter w = 8
 )(
   input [w - 1 : 0] in,
+  input [1 : 0] op_codes,
+  input valid,
   input clk,
   input rst,
-  input cin,
-  input valid,
   output reg [w - 1 : 0] o,
-  output reg ready,
-  output reg overflow,
-  output reg cout,
-  output reg divizor_zero
+  output reg ready
 );
   
-  reg [2 : 0] load_signals;
-  reg [w - 1] data_in [0 : 1];
-  reg [1 : 0] op_codes;
-  reg [3 : 0] en_operation;
+  wire [10 : 0] c;
   
-  shift_register #() x(.in(in), .rst(rst), .clk(clk), .rshift(1'b0), .lshift(1'b0), .load(load_signals[0]), .en(valid), .o(data_in[0]));
+  wire q_minus_one;
   
-  shift_register #() y(.in(in), .rst(rst), .clk(clk), .rshift(1'b0), .lshift(1'b0), .load(load_signals[1]), .en(valid), .o(data_in[1]));
+  wire [w - 1 : 0] q;
+  wire [w - 1 : 0] m;
+  wire [w - 1 : 0] a;
+  wire [w - 1 : 0] outAdder;
+  wire [w - 1 : 0] complementedM;
+  wire [w - 1 : 0] multiplexedAdderInput;
+  wire [w - 1 : 0] multiplexedQInput;
+  wire [w - 1 : 0] multiplexedAInput;
+  wire multiplexedQMinusOne;
   
-  shift_register #(.w(2)) op(.in(in[1 : 0]), .rst(rst), .clk(clk), .rshift(1'b0), .lshift(1'b0), .load(load_signals[2]), .en(valid), .o(op_codes));
+  wire [2 : 0] cnt;
+  wire aSerialOut;
+  wire qSerialOut;
+  wire multiuplexedASerialIn;
+  wire multiplexedQSerialIn;
   
-  dec #() DecOp(.in(in), .o(en_operation));
+  ffd Q_minus_one_flip_flop(.clk(clk), .d(multiplexedQMinusOne), .en(c[8] | c[9]), .rst(rst), .o(q_minus_one));
+  
+  shift_register Q(.parallelIn(multiplexedQInput), .serialIn(multiplexedQSerialIn), .clk(clk), .rst(rst), .en(c[0] | c[10] | c[4] | c[9] | c[6]), .lshift(c[4]), .rshift(c[9] | c[6]), .load(c[0] | c[10]), .parallelOut(q), .serialOut(qSerialOut));
+  
+  shift_register M(.parallelIn(in), .serialIn(1'b0), .clk(clk), .rst(rst), .en(c[1]), .lshift(1'b0), .rshift(1'b0), .load(c[1]), .parallelOut(m));
+  
+  shift_register A(.parallelIn(multiplexedAInput), .serialIn(multiplexedASerialIn), .clk(clk), .rst(rst), .en(c[2] | c[9] | c[4] | c[6]), .lshift(c[4]), .rshift(c[9] | c[6]), .load(c[2] | c[0]), .parallelOut(a), .serialOut(aSerialOut));
+  
+  c1 ComplementM(.in(m), .en(c[3]), .out(complementedM));
+  
+  mux #(.w(w), .in_cnt(2)) MuxAdderIn(.in({q, a}), .sel({0, c[2]}), .o(multiplexedAdderInput));
+  
+  mux #(.w(w), .in_cnt(2)) MuxQ(.in({in, outAdder}), .sel({0, c[10]}), .o(multiplexedQInput));
+  
+  mux #(.w(w), .in_cnt(2)) MuxA(.in({8'b0, outAdder}), .sel({0, c[2]}), .o(multiplexedAInput));
+  
+  mux #(.in_cnt(2)) MuxQMinuOne(.in({1'b0, qSerialOut}), .sel({0, c[9]}), .o(multiplexedQMinusOne));
+  
+  mux #(.in_cnt(2)) MuxSerialInA(.in({a[7], qSerialOut}), .sel({0, c[4]}), .o(multiplexedASerialIn));
+  
+  mux #(.in_cnt(2)) MuxSerialInQ(.in({1'b0, aSerialOut}), .sel({0, c[9]}), .o(multiplexedQSerialIn));
+  
+  adder ParallelAdder(.x(multiplexedAdderInput), .y(complementedM), .ci(c[3]), .o(outAdder));
+  
+  counter Count(.clk(clk), .rst(rst | c[0]), .en(c[5]), .o(cnt));
+  
+  control_unit AluControlUnit(.clk( clk), .rst(rst), .start(valid), .q_minus_one(q_minus_one), .q_zero(q[0]), .a_seven(a[7]), .cnt_7(cnt[0] & cnt[1] & cnt[2]), .op_codes(op_codes), .c(c), .finish(ready));
   
   always @(*) begin
-    if(load_signals[2] & 1 & ~clk) begin
-      load_signals = 1;
-      ready = 0;
-    end
-    if(~clk & valid & ready) begin
-      if(~(load_signals[2] & 1))
-        load_signals = load_signals << 1;
-    end
-  end
-  
-  
-  always @(posedge clk or negedge rst) begin
-    if(~rst) begin
-      divizor_zero <= 0;
-      cout <= 0;
-      overflow <= 0;
-      ready <= 1;
-      load_signals <= 1;
-    end
+    if(c[6])
+      o = a;
+    if(c[7])
+      o = q;
   end
   
 endmodule

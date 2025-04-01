@@ -1,4 +1,3 @@
-
 module fifo #(
   parameter w = 8,
   parameter reg_cnt = 1024

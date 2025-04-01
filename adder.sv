@@ -5,8 +5,6 @@ module adder #(
   input [w - 1 : 0] y,
   input ci,
   output reg [w - 1 : 0] o,
-  output co,
-  output overflow
 );
   
   genvar i;
@@ -18,14 +16,12 @@ module adder #(
       if(i == 0)
         fac Fac(.x(x[i]), .y(y[i]), .z(o[i]), .cin(ci), .co(cout[0]));
       else if(i == w - 1)
-        fac Fac(.x(x[i]), .y(y[i]), .z(o[i]), .cin(cout[i - 1]), .co(co));
+        fac Fac(.x(x[i]), .y(y[i]), .z(o[i]), .cin(cout[i - 1]), .co(cout[i]));
       else
         fac Fac(.x(x[i]), .y(y[i]), .z(o[i]), .cin(cout[i - 1]), .co(cout[i]));
     end
     
   endgenerate
-             
-  assign overflow = co;
   
 endmodule
 
