@@ -68,7 +68,7 @@ module control_unit(
   
   mux MuxC3(.in({1'b0, Q[1] & secv[0], secv[0] & Q[1] & q_zero & (~q_minus_one), Q[1] & secv[0]}), .sel({0, op_codes}), .o(c3));
   
-  mux MuxC4(.in({1'b0, 1'b0, 1'b0, secv[2] & Q[1] & ~cnt_7}), .sel({0, op_codes}), .o(c4));
+  mux MuxC4(.in({1'b0, 1'b0, 1'b0, (secv[2] & Q[1] & ~cnt_7) | (secv[2] & Q[0])}), .sel({0, op_codes}), .o(c4));
   
   mux MuxC5(.in({1'b0, 1'b0, secv[1] & Q[1] & (~cnt_7), secv[3] & Q[1] & (~cnt_7)}), .sel({0, op_codes}), .o(c5));
   
